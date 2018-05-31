@@ -17,6 +17,7 @@
 		061CB90B20BE3A7C0075945D /* Project1UITests.m in Sources */ = {isa = PBXBuildFile; fileRef = 061CB90A20BE3A7C0075945D /* Project1UITests.m */; };
 		061CB91A20BE42040075945D /* parseJsonMethod.m in Sources */ = {isa = PBXBuildFile; fileRef = 061CB91920BE42040075945D /* parseJsonMethod.m */; };
 		061CB91D20BE50830075945D /* NSDictionary.m in Sources */ = {isa = PBXBuildFile; fileRef = 061CB91C20BE50830075945D /* NSDictionary.m */; };
+		0647018C20BFECF1007CD6E7 /* NSMutableArray.m in Sources */ = {isa = PBXBuildFile; fileRef = 0647018B20BFECF1007CD6E7 /* NSMutableArray.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -57,6 +58,8 @@
 		061CB91920BE42040075945D /* parseJsonMethod.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = parseJsonMethod.m; sourceTree = "<group>"; };
 		061CB91B20BE50830075945D /* NSDictionary.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NSDictionary.h; sourceTree = "<group>"; };
 		061CB91C20BE50830075945D /* NSDictionary.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = NSDictionary.m; sourceTree = "<group>"; };
+		0647018A20BFECF1007CD6E7 /* NSMutableArray.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NSMutableArray.h; sourceTree = "<group>"; };
+		0647018B20BFECF1007CD6E7 /* NSMutableArray.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = NSMutableArray.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -120,6 +123,8 @@
 				061CB91920BE42040075945D /* parseJsonMethod.m */,
 				061CB91B20BE50830075945D /* NSDictionary.h */,
 				061CB91C20BE50830075945D /* NSDictionary.m */,
+				0647018A20BFECF1007CD6E7 /* NSMutableArray.h */,
+				0647018B20BFECF1007CD6E7 /* NSMutableArray.m */,
 			);
 			path = Project1;
 			sourceTree = "<group>";
@@ -280,6 +285,7 @@
 				061CB91A20BE42040075945D /* parseJsonMethod.m in Sources */,
 				061CB8E820BE3A7B0075945D /* AppDelegate.m in Sources */,
 				061CB91D20BE50830075945D /* NSDictionary.m in Sources */,
+				0647018C20BFECF1007CD6E7 /* NSMutableArray.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

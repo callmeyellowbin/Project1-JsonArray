@@ -7,12 +7,20 @@
 //
 
 #import <Foundation/Foundation.h>
-
+#import "NSMutableArray.h"
 @interface ParseJsonMethod : NSObject
-
-@property (nonatomic, assign) NSDictionary *jsonDictionary;
+{
+    int begin, end;
+    NSString *beginChar;
+    NSString *endChar;
+    NSMutableArray *dict;
+    NSMutableArray *subResultArray;
+}
+@property (nonatomic, assign) NSMutableDictionary *jsonDictionary;
 @property (nonatomic, copy) NSMutableString *jsonString;
 - (void) initWithJsonFile: (char *) path;
 - (void) parseWithJsonString;
-- (void) parseWithJsonStringByMySelf;
+//- (void) parseWithJsonStringByMySelf;
+- (BOOL) parseWithJsonStringArray: (NSArray*) array;
+- (BOOL) parseWithJsonStringByMySelf;
 @end
