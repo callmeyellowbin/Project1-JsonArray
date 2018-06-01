@@ -15,12 +15,13 @@
     NSString *endChar;
     NSMutableArray *dict;
     NSMutableArray *subResultArray;
+    int count;
 }
-@property (nonatomic, assign) NSMutableDictionary *jsonDictionary;
+@property (nonatomic, copy) NSMutableDictionary *jsonDictionary;
 @property (nonatomic, copy) NSMutableString *jsonString;
 - (void) initWithJsonFile: (char *) path;
 - (void) parseWithJsonString;
 //- (void) parseWithJsonStringByMySelf;
-- (BOOL) parseWithJsonStringArray: (NSArray*) array;
+- (NSMutableArray *) parseWithJsonStringArray: (NSArray*) array;
 - (BOOL) parseWithJsonStringByMySelf;
 @end

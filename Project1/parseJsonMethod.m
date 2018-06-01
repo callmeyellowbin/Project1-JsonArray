@@ -28,6 +28,7 @@
     char word[200];
     //初始化NSString
     _jsonString = [NSMutableString stringWithCapacity: 50];
+    _jsonDictionary = [NSMutableDictionary dictionaryWithCapacity: 50];
     while (fgets(word, 200, jsonFile)) {
         //获取文本内容
         NSString *tmp = [NSString stringWithUTF8String: word];
@@ -91,278 +92,279 @@
 {
 //    NSMutableArray *array = [[NSMutableArray alloc] init];
     //定义两个指针，一个从头遍历，一个从尾部遍历
-    //获得key
-    NSMutableString *key = [[NSMutableString alloc] init];
+    
     begin = 0;
     end = (int) [dict count] - 1;
     beginChar = dict[begin];
     endChar = dict[end];
-    while (begin < end) {
-        if ([beginChar isEqualToString: @"{"] && [endChar isEqualToString:@"}"]) {
-            //指针移动
-            [self updateBeginChar];
-            [self updateEndChar];
-            if ([beginChar isEqualToString: @"\""]) {
-                //花括号后面跟引号
-                [self updateBeginChar];
-                //从开始的指针找
-                NSInteger quoteIndex = [dict indexOfObject: @"\"" inRange: NSMakeRange(begin, end - begin)];
-//                int quoteIndex = [dict reverseIndexOfObject: @"\"" fromBegin: begin andEnd: end];
-                NSLog(@"index is: %d", quoteIndex);
-                
-                if (quoteIndex == -1) {
-                    //没找到引号
-                    return NO;
-                }
-                for (int i = begin; i < quoteIndex; i++) {
-                    [key appendString: dict[i]];
-                }
-                NSLog(@"here is key: %@", key);
-                
-                [_jsonDictionary setObject: [NSNull null] forKey:key];
-                //再次右移
-                begin = (int) quoteIndex + 1;
-                beginChar = [NSString stringWithString: dict[begin]];
-                //判断后面是否跟冒号
-                if ([beginChar isEqualToString: @":"]) {
-                    [self updateBeginChar];
-                    NSArray *subArray = [[NSArray alloc] init];
-                    subArray = [dict subarrayWithRange: NSMakeRange(begin, end - begin)];
-                    //字典方法
-//                    if (![self parseWithJsonStringDictionary: subArray forKey: key])
-//                        return NO;
-                }
-                else {
-                    return NO;
-                }
-            }
-        }
-        else {
+    count = 0;
+    if ([beginChar isEqualToString: @"{"] && [endChar isEqualToString:@"}"]) {
+        NSArray *subArray = [[NSArray alloc] init];
+        subArray = [dict subarrayWithRange: NSMakeRange(begin, end - begin + 1)];
+        NSLog(@"subArray is: %@", subArray);
+        _jsonDictionary = [self parseWithJsonStringDictionary: subArray];
+        NSLog(@"here!");
+        if (_jsonDictionary == nil)
             return NO;
-        }
-        
-        if ([beginChar isEqualToString: @"["]) {
-            NSMutableArray *subArray = [[NSMutableArray alloc] init];
-            int arrayIndex;
-            int count = 0;
-            int beginOfArray = begin;
-            int endOfArray = begin;
-            while ([beginChar isEqualToString: @"["]) {
-                //连续嵌套
-                count++;
-                [self updateBeginChar];
-                beginOfArray = begin;
-            }
-            NSLog(@"count: %d", count);
-            NSLog(@"begin: %d", begin);
-            while (count > 0 && beginOfArray < end) {
-                while (![dict[beginOfArray] isEqualToString: @"]"]) {
-                    if (beginOfArray >= end) {
-                        return NO;
-                    }
-                    //直到找到]为止
-                    beginOfArray++;
-                }
-                NSLog(@"beginOfArray: %d", beginOfArray);
-                NSLog(@"begin: %d", begin);
-                if ([dict[beginOfArray] isEqualToString: @"]"]) {
-                    //找到了一个
-                    count--;
-                    NSArray *subSubArray = [[NSArray alloc] init];
-                    subSubArray = [dict subarrayWithRange: NSMakeRange(begin, beginOfArray - begin)];
-                    if ([self parseWithJsonStringArray: subSubArray]) {
-                        NSLog(@"here is another_key: %@", key);
-                        //嵌套，加一层
-                        NSArray *result = [NSArray arrayWithArray: subResultArray];
-                        [subArray addObject: result];
-                        //记得清空
-                        [subResultArray removeAllObjects];
-                    }
-                }
-            }
-            NSLog(@"Begin: %@, End: %@", beginChar, endChar);
-            [self updateBeginChar];
-            _jsonDictionary[key] = subArray;
-            NSLog(@"Complete! dict: %@", _jsonDictionary);
-        }
-        else
-            //没找到框
-            return NO;
+//        NSLog(@"result is: %@", [self jsonDictionary]);
+    }
+    else {
+        return NO;
     }
     return YES;
 }
 
-- (BOOL) parseWithJsonStringDictionary:(NSArray *)array forKey: (NSMutableString *)key
-{
-    //定义两个指针，一个从头遍历，一个从尾部遍历
-    int begin = 0;
-    int end = (int) [array count] - 1;
-    NSArray *numberArray = @[@"1", @"2", @"3", @"4", @"5", @"6", @"7", @"8", @"9", @"0"];
-    //当两个指针相遇的时候，遍历完成
-    while (begin <= end) {
-        beginChar = [NSString stringWithString: array[begin]];
-        endChar = [NSString stringWithString: array[end]];
-        if ([beginChar isEqualToString: @"\""]) {
-            //处理key
-            
-            
-        }
-        else if ([beginChar isEqualToString: @"n"]) {
-            //处理null
-        }
-        else if ([beginChar isEqualToString: @"t"]) {
-            //处理true
-        }
-        else if ([numberArray containsObject: beginChar]) {
-            //处理数字
-            if ([array containsObject: @"."]) {
-                
-            }
-        }
-        else {
-            return NO;
-        }
-    }
-    return YES;
-}
 
--(BOOL) parseWithJsonStringArray:(NSMutableArray *)array
+- (NSMutableDictionary* ) parseWithJsonStringDictionary:(NSArray *)array
 {
     //定义两个指针，一个从头遍历，一个从尾部遍历
     int begin = 0;
     int end = (int) [array count] - 1;
-    NSArray *numberArray = @[@"1", @"2", @"3", @"4", @"5", @"6", @"7", @"8", @"9", @"0"];
-    NSLog(@"array: %@", array);
-    NSLog(@"begin: %d, end: %d", begin, end);
+    NSMutableDictionary *result = [[NSMutableDictionary alloc] init];
+    NSMutableString *key = [[NSMutableString alloc] init];
     //当两个指针相遇的时候，遍历完成
-    while (begin <= end) {
-        NSLog(@"BBBBegin, begin: %d, end: %d", begin, end);
-        beginChar = [NSString stringWithString: array[begin]];
-        endChar = [NSString stringWithString: array[end]];
-        NSLog(@"begin: %@, end: %@", beginChar, endChar);
+//    while (begin < end) {
+        beginChar = array[begin];
+        endChar = array[end];
+        if (![beginChar isEqualToString: @"{"] || ![endChar isEqualToString: @"}"])
+            return nil;
+        begin++;
+        end--;
+        beginChar = array[begin];
+        endChar = array[end];
         if ([beginChar isEqualToString: @"\""]) {
-            //处理key
-            //从开始的指针找
+            //花括号后面跟引号
             begin++;
-            beginChar = array[begin];
-            NSLog(@"Array, begin: %d, end: %d", begin, end);
+            //从开始的指针找
             NSInteger quoteIndex = [array indexOfObject: @"\"" inRange: NSMakeRange(begin, end - begin)];
-//            NSInteger quoteIndex = [array reverseIndexOfObject: @"\"" fromBegin: begin andEnd: end];
-//            NSLog(@"index is: %d", quoteIndex);
             if (quoteIndex == NSNotFound) {
                 //没找到引号
-                return NO;
+                return nil;
             }
-            //获得key
-            NSMutableString *key = [[NSMutableString alloc] init];
-            NSLog(@"array, begin: %@", beginChar);
-            NSLog(@"array, begin: %@", beginChar);
             for (int i = begin; i < quoteIndex; i++) {
-                NSLog(@"array[i]: %@", array[i]);
                 [key appendString: array[i]];
             }
-            [subResultArray addObject: key];
-            begin = (int) quoteIndex + 1;
-            NSLog(@"array, key: %@", key);
-        }
-        else if ([beginChar isEqualToString: @"n"]) {
+            NSLog(@"here is key: %@", key);
             
-            //处理null
-            if (begin + 3 <= end) {
-                if ([array[begin + 1] isEqualToString: @"u"] &&
-                    [array[begin + 2] isEqualToString: @"l"] &&
-                    [array[begin + 3] isEqualToString: @"l"]) {
-                    [subResultArray addObject: [NSNull null]];
-                    NSLog(@"null");
-                    begin += 4;
-                }
-                else
-                    return NO;
-            }
-            else
-                return NO;
-        }
-        else if ([beginChar isEqualToString: @"t"]) {
-            //处理true
-            if (begin + 3 <= end) {
-                if ([array[begin + 1] isEqualToString: @"r"] &&
-                    [array[begin + 2] isEqualToString: @"u"] &&
-                    [array[begin + 3] isEqualToString: @"e"]) {
-                    [subResultArray addObject: [NSNumber numberWithBool: YES]];
-                    NSLog(@"true");
-                    begin += 4;
-                }
-                
-                else
-                    return NO;
-            }
-            else
-                return NO;
-        }
-        else if ([beginChar isEqualToString: @"f"]) {
-            //处理true
-            if (begin + 4 <= end) {
-                if ([array[begin + 1] isEqualToString: @"a"] &&
-                    [array[begin + 2] isEqualToString: @"l"] &&
-                    [array[begin + 3] isEqualToString: @"s"] &&
-                    [array[begin + 4] isEqualToString: @"e"]) {
-                    [subResultArray addObject: [NSNumber numberWithBool: NO]];
-                    NSLog(@"false");
-                    begin += 5;
-                }
-                
-                else
-                    return NO;
-            }
-            else
-                return NO;
-        }
-        else if ([numberArray containsObject: beginChar]) {
-            NSLog(@"number: %@", beginChar);
-            NSMutableString *key = [[NSMutableString alloc] init];
-            while ([numberArray containsObject: beginChar]) {
-                NSLog(@"beginChar: %@", beginChar);
-                [key appendString: beginChar];
+            [_jsonDictionary setObject: [NSNull null] forKey:key];
+            //再次右移
+            begin = (int) quoteIndex + 1;
+            beginChar = array[begin];
+            //判断后面是否跟冒号
+            if ([beginChar isEqualToString: @":"]) {
                 begin++;
-                if (begin < end) {
-                    beginChar = [NSString stringWithString: array[begin]];
+                beginChar = array[begin];
+                NSArray *subArray = [[NSArray alloc] init];
+                NSLog(@"end: %d", end);
+                NSLog(@"begin: %d", begin);
+                subArray = [array subarrayWithRange: NSMakeRange(begin, end - begin + 1)];
+                
+                NSLog(@"subDict: %@", subArray);
+                if ([beginChar isEqualToString: @"{"]) {
+                    //是一个字典
+                    NSMutableDictionary *father = [[NSMutableDictionary alloc] init];
+                    father = [self parseWithJsonStringDictionary: subArray];
+                    if (father == nil)
+                        return nil;
+                    [result setObject: father forKey: key];
                 }
-                else
-                    break;
-            }
-            NSLog(@"key: %@", key);
-            //处理数字
-            if ([self isPureInt: key]) {
-                NSLog(@"key: int");
-                int value = [key intValue];
-                [subResultArray addObject: ([NSNumber numberWithInt: value])];
-            }
-            else if ([self isPureFloat: key]){
-                float value = [key floatValue];
-                [subResultArray addObject: ([NSNumber numberWithFloat: value])];
+                else {
+                    //是一个数组
+                    NSMutableArray *father = [[NSMutableArray alloc] init];
+                    father = [self parseWithJsonStringArray: subArray];
+                    if (father == nil)
+                        return nil;
+                    [result setObject: father forKey: key];
+                }
             }
             else {
-                return NO;
+                return nil;
             }
         }
-        else {
-            return NO;
-        }
-        if (begin >= end) {
-            //结束该数组
-            return YES;
-        }
+//    }
+    NSLog(@"Result dictionary is: %@", result);
+    return result;
+}
+
+- (id) parseWithJsonStringArray:(NSMutableArray *)array
+{
+    //定义两个指针，一个从头遍历，一个从尾部遍历
+    int begin = 0;
+    int end = (int) [array count] - 1;
+    NSMutableArray *result = [[NSMutableArray alloc] init];
+    NSArray *numberArray = @[@"1", @"2", @"3", @"4", @"5", @"6", @"7", @"8", @"9", @"0"];
+    //当两个指针相遇的时候，遍历完成
+//    while (begin < end) {
+        beginChar = [NSString stringWithString: array[begin]];
+        endChar = [NSString stringWithString: array[end]];
+    if ([beginChar isEqualToString: @"\""]) {
+        //处理key
+        //从开始的指针找
+        begin++;
         beginChar = array[begin];
-        NSLog(@"beginChar: %@", beginChar);
-        if ([beginChar isEqualToString: @","]) {
-            NSLog(@"begin: %d, end: %d", begin, end);
-            //接逗号
-            begin++;
+        NSInteger quoteIndex = [array indexOfObject: @"\"" inRange: NSMakeRange(begin, end - begin)];
+        if (quoteIndex == NSNotFound) {
+            //没找到引号
+            return nil;
+        }
+        //获得key
+        NSMutableString *key = [[NSMutableString alloc] init];
+        for (int i = begin; i < quoteIndex; i++) {
+            [key appendString: array[i]];
+        }
+//        NSMutableArray *result = [[NSMutableArray alloc] init];
+//        [result addObject: key];
+        begin = (int) quoteIndex + 1;
+        NSLog(@"array, key: %@", key);
+        return key;
+    }
+    else if ([beginChar isEqualToString: @"n"]) {
+        //处理null
+        if (begin + 3 <= end) {
+            if ([array[begin + 1] isEqualToString: @"u"] &&
+                [array[begin + 2] isEqualToString: @"l"] &&
+                [array[begin + 3] isEqualToString: @"l"]) {
+//                NSMutableArray *result = [[NSMutableArray alloc] init];
+//                [result addObject: [NSNull null]];
+                NSLog(@"null");
+                begin += 4;
+                return [NSNull null];
+            }
+            else
+                return nil;
         }
         else
-            return NO;
+            return nil;
     }
-    return YES;
+    else if ([beginChar isEqualToString: @"t"]) {
+        //处理true
+        if (begin + 3 <= end) {
+            if ([array[begin + 1] isEqualToString: @"r"] &&
+                [array[begin + 2] isEqualToString: @"u"] &&
+                [array[begin + 3] isEqualToString: @"e"]) {
+//                NSMutableArray *result = [[NSMutableArray alloc] init];
+//                [result addObject: [NSNumber numberWithBool: YES]];
+                NSLog(@"true");
+                begin += 4;
+                return [NSNumber numberWithBool: YES];
+            }
+            
+            else
+                return nil;
+        }
+        else
+            return nil;
+    }
+    else if ([beginChar isEqualToString: @"f"]) {
+        //处理true
+        if (begin + 4 <= end) {
+            if ([array[begin + 1] isEqualToString: @"a"] &&
+                [array[begin + 2] isEqualToString: @"l"] &&
+                [array[begin + 3] isEqualToString: @"s"] &&
+                [array[begin + 4] isEqualToString: @"e"]) {
+//                NSMutableArray *result = [[NSMutableArray alloc] init];
+//                [result addObject: [NSNumber numberWithBool: NO]];
+                NSLog(@"false");
+                begin += 5;
+                return [NSNumber numberWithBool: NO];
+            }
+            
+            else
+                return nil;
+        }
+        else
+            return nil;
+    }
+    else if ([numberArray containsObject: beginChar]) {
+        NSLog(@"number: %@", beginChar);
+        NSMutableString *key = [[NSMutableString alloc] init];
+        while ([numberArray containsObject: beginChar]) {
+            //获取数字字符串
+            NSLog(@"beginChar: %@", beginChar);
+            [key appendString: beginChar];
+            begin++;
+            if (begin < end) {
+                beginChar = [NSString stringWithString: array[begin]];
+            }
+            else
+                break;
+        }
+        NSLog(@"key: %@", key);
+        //处理数字
+        if ([self isPureInt: key]) {
+            NSLog(@"key: int");
+            int value = [key intValue];
+//            NSMutableArray *result = [[NSMutableArray alloc] init];
+//            [result addObject: ([NSNumber numberWithInt: value])];
+            return [NSNumber numberWithInt: value];
+        }
+        else if ([self isPureFloat: key]){
+            float value = [key floatValue];
+            
+//            [result addObject: ([NSNumber numberWithFloat: value])];
+            return [NSNumber numberWithFloat: value];
+        }
+        else {
+            return nil;
+        }
+    }
+    else if ([beginChar isEqualToString: @"["]) {
+        //传进来的是[]
+        if (![array[end] isEqualToString: @"]"])
+            return nil;
+        begin++;
+        end--;
+        while (begin <= end) {
+            NSArray *subArray = [[NSMutableArray alloc] init];
+            NSInteger quoteIndex = [array indexOfObject: @"," inRange: NSMakeRange(begin, end - begin + 1)];
+            NSInteger leftBracketsIndex = [array indexOfObject: @"[" inRange: NSMakeRange(begin, end - begin + 1)];
+            if (quoteIndex == NSNotFound) {
+                //直到没找到引号，则把最后的括号视为逗号
+                quoteIndex = end + 1;
+            }
+            NSLog(@"array: %@", array);
+            if (leftBracketsIndex == NSNotFound) {
+                //获得逗号之前的数组
+                subArray = [array subarrayWithRange: NSMakeRange(begin, (int) quoteIndex - begin)];
+                begin = (int) quoteIndex + 1;
+            }
+            else {
+                if (leftBracketsIndex > quoteIndex) {
+                    //逗号不属于子数组，则照常工作
+                    subArray = [array subarrayWithRange: NSMakeRange(begin, (int) quoteIndex - begin)];
+                    begin = (int) quoteIndex + 1;
+                }
+                else {
+                    //逗号属于子数组,则跳过该子数组，将其视为一个整体
+                    NSInteger rightBracketsIndex = [array indexOfObject: @"]" inRange: NSMakeRange(begin, end - begin + 1)];
+                    if (rightBracketsIndex == NSNotFound || rightBracketsIndex >= end + 1)
+                        return nil;
+                    subArray = [array subarrayWithRange: NSMakeRange(begin, (int) rightBracketsIndex - begin + 1)];
+                    begin = (int) rightBracketsIndex + 1;
+                    //看看下一位是不是逗号或者结束
+                    if ([array[begin] isEqualToString: @","] || [array[begin] isEqualToString: @"}"]) {
+                        begin++;
+                    }
+                    else
+                        return nil;
+                }
+            }
+            NSLog(@"SubArray: %@", subArray);
+            id jsonResult = nil;
+            jsonResult = [self parseWithJsonStringArray: subArray];
+            if (jsonResult == nil)
+                return nil;
+            [result addObject: jsonResult];
+            
+        }
+        return result;
+    }
+    else {
+        return nil;
+    }
+
 }
+
+
 @end
 

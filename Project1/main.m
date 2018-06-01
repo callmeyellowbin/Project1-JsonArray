@@ -18,14 +18,15 @@ int main(int argc, char * argv[]) {
         //获取文本内容
         [method initWithJsonFile: path];
         //解析JSON数据
-        [method parseWithJsonString];
+//        [method parseWithJsonString];
+        
         //输出获得的字典。
         //输出时中文转码错误，只能通过类别定义来返回NSString从而输出
-//        if ([method jsonDictionary])
-//            NSLog(@"The result dictionary is %@", [[method jsonDictionary] my_description]);
-//        else
-//            NSLog(@"JSON数据不合法！");
-        [method parseWithJsonStringByMySelf];
+        if ([method parseWithJsonStringByMySelf])
+            NSLog(@"The result dictionary is %@", [[method jsonDictionary] my_description]);
+        else
+            NSLog(@"JSON数据不合法！");
+        
         return UIApplicationMain(argc, argv, nil, NSStringFromClass([AppDelegate class]));
     }
 }
