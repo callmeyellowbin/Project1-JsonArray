@@ -10,15 +10,16 @@
 #import "NSMutableArray.h"
 @interface ParseJsonMethod : NSObject
 {
-    int begin, end;
     NSString *beginChar;
     NSString *endChar;
     NSMutableArray *dict;
     NSMutableArray *subResultArray;
-    int count;
+    int braceCount, bracketCountForDictionary, bracketCountForArray;
 }
 @property (nonatomic, copy) NSMutableDictionary *jsonDictionary;
 @property (nonatomic, copy) NSMutableString *jsonString;
+@property (nonatomic, copy) NSMutableArray *jsonArray;
+
 - (void) initWithJsonFile: (char *) path;
 - (void) parseWithJsonString;
 //- (void) parseWithJsonStringByMySelf;

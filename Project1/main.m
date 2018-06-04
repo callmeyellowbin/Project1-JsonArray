@@ -23,7 +23,7 @@ int main(int argc, char * argv[]) {
         //输出获得的字典。
         //输出时中文转码错误，只能通过类别定义来返回NSString从而输出
         if ([method parseWithJsonStringByMySelf])
-            NSLog(@"The result dictionary is %@", [[method jsonDictionary] my_description]);
+            NSLog(@"The result dictionary is %@", [method jsonArray]);
         else
             NSLog(@"JSON数据不合法！");
         
