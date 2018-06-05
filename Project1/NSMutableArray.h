@@ -10,6 +10,6 @@
 
 @interface NSMutableArray(Reverse)
 
-- (int) reverseIndexOfObject: (NSString *) string fromBegin: (int) begin andEnd: (int) end;
+- (NSString*)my_description;
 
 @end

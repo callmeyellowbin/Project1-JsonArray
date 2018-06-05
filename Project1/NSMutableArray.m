@@ -8,17 +8,12 @@
 
 #import "NSMutableArray.h"
 
-@implementation NSMutableArray(Reverse)
+@implementation NSMutableArray(UniCode)
 
--(int) reverseIndexOfObject:(NSString *)string fromBegin:(int)begin andEnd:(int)end
-{
-    for (int i = end; i >= begin; i--) {
-        NSString *str = [self objectAtIndex: i];
-        NSLog(@"string is : %@", str);
-        NSString *cmpstr = [string substringWithRange:NSMakeRange(0, 1)];
-        if ([str isEqualToString: cmpstr])
-            return i;
-    }
-    return -1;
+- (NSString*)my_description {
+    NSString *desc = [self description];
+    desc = [NSString stringWithCString:[desc cStringUsingEncoding:NSUTF8StringEncoding] encoding:NSNonLossyASCIIStringEncoding];
+    return desc;
 }
+
 @end

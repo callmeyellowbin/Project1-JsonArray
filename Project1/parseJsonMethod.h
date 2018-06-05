@@ -10,8 +10,6 @@
 #import "NSMutableArray.h"
 @interface ParseJsonMethod : NSObject
 {
-    NSString *beginChar;
-    NSString *endChar;
     NSMutableArray *dict;
     NSMutableArray *subResultArray;
     int braceCount, bracketCountForDictionary, bracketCountForArray;

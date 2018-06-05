@@ -10,6 +10,7 @@
 #import "AppDelegate.h"
 #import "parseJsonMethod.h"
 #import "NSDictionary.h"
+#import "NSMutableArray.h"
 int main(int argc, char * argv[]) {
     @autoreleasepool {
         char* path = "/Users/huanghongbin/Library/Mobile Documents/com~apple~TextEdit/Documents/jsonFile.txt";
@@ -23,7 +24,7 @@ int main(int argc, char * argv[]) {
         //输出获得的字典。
         //输出时中文转码错误，只能通过类别定义来返回NSString从而输出
         if ([method parseWithJsonStringByMySelf])
-            NSLog(@"The result dictionary is %@", [method jsonArray]);
+            NSLog(@"The result dictionary is %@", [[method jsonArray] my_description]);
         else
             NSLog(@"JSON数据不合法！");
         
