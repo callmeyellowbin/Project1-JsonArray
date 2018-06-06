@@ -16,7 +16,7 @@
 //定义两个指针，一个从头遍历，一个从尾部遍历
 
 
--(void) initWithJsonFile:(char *)path
+-(NSString* ) getStringWithJsonFile:(char *)path
 {
     //忘了初始化就会null
     dict = [[NSMutableArray alloc] init];
@@ -24,10 +24,12 @@
     //读入
     FILE *jsonFile = fopen(path, "r");
     char word[200];
+    
     //初始化
     _jsonString = [NSMutableString stringWithCapacity: 50];
     _jsonDictionary = [NSMutableDictionary dictionaryWithCapacity: 50];
     _jsonArray = [NSMutableArray arrayWithCapacity: 50];
+    _resultType = -1;
     //统计括号数量
     braceCount = 0;
     bracketCountForArray = 0;
@@ -36,20 +38,17 @@
     while (fgets(word, 200, jsonFile)) {
         //获取文本内容
         NSString *tmp = [NSString stringWithUTF8String: word];
-        [_jsonString appendString: tmp];
         //去掉所有空格和换行
         tmp = [tmp stringByReplacingOccurrencesOfString:@" " withString:@""];
         tmp = [tmp stringByReplacingOccurrencesOfString:@"\n" withString:@""];
         tmp = [tmp stringByReplacingOccurrencesOfString:@"\t" withString:@""];
         tmp = [tmp stringByReplacingOccurrencesOfString:@"\r" withString:@""];
-        for (int i = 0; i < [tmp length]; i++) {
-            //转成一个个字符读取
-            NSString *subChar = [tmp substringWithRange:NSMakeRange(i, 1)];
-            [dict addObject: subChar];
-        }
+        [_jsonString appendString: tmp];
+        
     }
+    NSString *jsonStr = [[NSString alloc] initWithString: _jsonString];
+    return jsonStr;
 }
-
 
 - (void) parseWithJsonString
 {
@@ -91,8 +90,21 @@
     if ([beginChar isEqualToString: @"{"] && [endChar isEqualToString:@"}"]) {
         NSArray *subArray = [[NSArray alloc] init];
         subArray = [dict subarrayWithRange: NSMakeRange(begin, end - begin + 1)];
-        _jsonArray = [self parseWithJsonStringDictionary: subArray];
-        if (_jsonArray == nil)
+        id jsonResult = nil;
+        jsonResult = [self parseWithJsonStringDictionary: subArray];
+        if (jsonResult == nil)
+            return NO;
+        if ([jsonResult isKindOfClass: [NSMutableArray class]]) {
+            //返回了一个数组
+            _resultType = 0;
+            _jsonArray = jsonResult;
+        }
+        else if ([jsonResult isKindOfClass: [NSMutableDictionary class]]) {
+            //返回了一个字典
+            _resultType = 1;
+            _jsonDictionary = jsonResult;
+        }
+        else
             return NO;
     }
     else {
@@ -101,6 +113,36 @@
     return YES;
 }
 
+- (void) setDict:(NSMutableArray *) d
+{
+    dict = d;
+}
+
++ (id) JsonObjectWithString:(NSString *)jsonStr
+{
+    ParseJsonMethod *method = [[ParseJsonMethod alloc] init];
+    NSMutableArray *dict = [NSMutableArray arrayWithCapacity: 50];
+    for (int i = 0; i < [jsonStr length]; i++) {
+        //转成一个个字符读取
+        NSString *subChar = [jsonStr substringWithRange:NSMakeRange(i, 1)];
+        [dict addObject: subChar];
+    }
+    [method setDict: dict];
+    if ([method parseWithJsonStringByMySelf]) {
+        if ([method resultType] == 0) {
+            return [method jsonArray];
+        }
+        else if ([method resultType] == 1) {
+            return [method jsonDictionary];
+        }
+        else {
+            return @"JSON数据不合法！";
+        }
+    }
+    else {
+        return @"JSON数据不合法！";
+    }
+}
 - (int) findRightBracketIndex: (NSArray* ) array
 {
     int count = 0;
@@ -185,7 +227,7 @@
                         subDictionary = [subBracketString subarrayWithRange: NSMakeRange(0, (int) rightBracketsIndex + 1)];
                         begin += ([subDictionary count]);
                         //看看下一位是不是逗号或者结束
-                        if ([array[begin] isEqualToString: @","] || [array[begin] isEqualToString: @"}"]) {
+                        if ([array[begin] isEqualToString: @","] || [array[begin] isEqualToString: @"}"] || [array[begin] isEqualToString: @"]"]) {
                             begin++;
                         }
                         else
@@ -201,7 +243,8 @@
                     }
                     else {
                         //获得括号前的数组
-                        NSArray* subBraceString = [array subarrayWithRange: NSMakeRange(begin, leftBraceIndex)];
+                        NSArray* subBraceString = [array subarrayWithRange: NSMakeRange(begin, end - begin + 1)];
+//                        NSLog(@"right: %@", subBraceString);
                         rightBraceIndex = [self findRightBraceIndex: subBraceString];
                         if (rightBraceIndex == -1)
                             return nil;
@@ -221,8 +264,10 @@
                         ((quoteIndex > rightBracketsIndex) && (quoteIndex < leftBraceIndex)) ||
                         ((quoteIndex > rightBracketsIndex) && (quoteIndex > rightBraceIndex)) ||
                         ((quoteIndex > rightBraceIndex) && (quoteIndex < leftBracketsIndex))) {
+                        
                         //逗号不属于子数组或子字典，则照常工作
                         subDictionary = [array subarrayWithRange: NSMakeRange(begin, (int) quoteIndex)];
+//                        NSLog(@"SubDictionary0: %@", subDictionary);
                         begin += ((int) quoteIndex + 1);
                     }
 
@@ -233,9 +278,10 @@
                         if (rightBracketsIndex == -1)
                             return nil;
                         subDictionary = [subBracketString subarrayWithRange: NSMakeRange(0, (int) rightBracketsIndex + 1)];
+//                        NSLog(@"SubDictionary1: %@", subDictionary);
                         begin += ([subDictionary count]);
                         //看看下一位是不是逗号或者结束
-                        if ([array[begin] isEqualToString: @","] || [array[begin] isEqualToString: @"}"]) {
+                        if ([array[begin] isEqualToString: @","] || [array[begin] isEqualToString: @"}"] || [array[begin] isEqualToString: @"]"]) {
                             begin++;
                         }
                         else
@@ -248,6 +294,7 @@
                         if (rightBraceIndex == -1)
                             return nil;
                         subDictionary = [subBraceString subarrayWithRange: NSMakeRange(0, (int) rightBraceIndex + 1)];
+//                        NSLog(@"SubDictionary2: %@", subDictionary);
                         begin += ([subDictionary count]);
                         //看看下一位是不是逗号或者结束
                         if ([array[begin] isEqualToString: @","] || [array[begin] isEqualToString: @"}"] || [array[begin] isEqualToString: @"]"]) {
@@ -263,9 +310,10 @@
                         if (rightBracketsIndex == -1)
                             return nil;
                         subDictionary = [subBracketString subarrayWithRange: NSMakeRange(0, (int) rightBracketsIndex + 1)];
+//                        NSLog(@"SubDictionary3: %@", subDictionary);
                         begin += ([subDictionary count]);
                         //看看下一位是不是逗号或者结束
-                        if ([array[begin] isEqualToString: @","] || [array[begin] isEqualToString: @"}"]) {
+                        if ([array[begin] isEqualToString: @","] || [array[begin] isEqualToString: @"}"] || [array[begin] isEqualToString: @"]"]) {
                             begin++;
                         }
                         else
@@ -279,6 +327,7 @@
                         if (rightBraceIndex == -1)
                             return nil;
                         subDictionary = [subBraceString subarrayWithRange: NSMakeRange(0, (int) rightBraceIndex + 1)];
+//                        NSLog(@"SubDictionary4: %@", subDictionary);
                         begin += ([subDictionary count]);
                         //看看下一位是不是逗号或者结束
                         if ([array[begin] isEqualToString: @","] || [array[begin] isEqualToString: @"}"] || [array[begin] isEqualToString: @"]"]) {
@@ -293,24 +342,30 @@
             }
             
         }
+//        NSLog(@"subDict: %@", subDictionary);
         id jsonResult = nil;
         jsonResult = [self parseDictionary: subDictionary];
         if (jsonResult == nil)
             return nil;
         [result addObject: jsonResult];
     }
-    return result;
+    if ([result count] > 1)
+        return result;
+    else
+        return result[0];
 }
 
 - (id) parseDictionary: (NSArray *)array
 {
-    int begin = 0;
-    int end = (int) [array count] - 1;
+//    NSLog(@"ParseDict: %@", array);
     if ([array count] == 0)
         return nil;
+    int begin = 0;
+    int end = (int) [array count] - 1;
     NSString *beginChar = array[begin];
     NSMutableDictionary *result = [[NSMutableDictionary alloc] init];
     NSMutableString *key = [[NSMutableString alloc] init];
+    
     if ([beginChar isEqualToString: @"\""]) {
         //花括号后面跟引号
         begin++;
@@ -327,6 +382,8 @@
         //找到了key
         //再次右移
         begin = (int) quoteIndex + 1;
+        if (begin > end)
+            return nil;
         beginChar = array[begin];
         //判断后面是否跟冒号
         if ([beginChar isEqualToString: @":"]) {
@@ -338,14 +395,17 @@
                 //是一个字典
                 NSMutableArray *father = [[NSMutableArray alloc] init];
                 father = [self parseWithJsonStringDictionary: subArray];
+//                NSLog(@"father1: %@",father);
                 if (father == nil)
                     return nil;
                 [result setObject: father forKey: key];
             }
             else {
                 //是一个元素
+//                NSLog(@"subArray: %@",subArray);
                 NSMutableArray *father = [[NSMutableArray alloc] init];
                 father = [self parseWithJsonStringArray: subArray];
+//                NSLog(@"father2: %@",father);
                 if (father == nil)
                     return nil;
                 [result setObject: father forKey: key];
@@ -356,12 +416,15 @@
         }
         
     }
-//    else
-//        return nil;
+    else
+        return nil;
     return result;
 }
-- (id) parseWithJsonStringArray:(NSMutableArray *)array
+- (id) parseWithJsonStringArray:(NSArray *)array
 {
+//    NSLog(@"array:%@", array);
+    if ([array count] == 0)
+        return nil;
     //定义两个指针，一个从头遍历，一个从尾部遍历
     int begin = 0;
     int end = (int) [array count] - 1;
@@ -369,6 +432,7 @@
     NSArray *numberArray = @[@"1", @"2", @"3", @"4", @"5", @"6", @"7", @"8", @"9", @"0"];
     //当两个指针相遇的时候，遍历完成
     NSString *beginChar = [NSString stringWithString: array[begin]];
+    
     //处理String
     if ([beginChar isEqualToString: @"\""]) {
         //处理key
@@ -385,6 +449,8 @@
             [key appendString: array[i]];
         }
         begin = (int) quoteIndex + 1;
+        if (begin < end)
+            return nil;
         return key;
     }
     else if ([beginChar isEqualToString: @"n"]) {
@@ -468,9 +534,12 @@
             return nil;
         begin++;
         end--;
+        if ([array[end] isEqualToString: @","])
+            return nil;
         while (begin <= end) {
             NSArray *subArray = [[NSMutableArray alloc] init];
             NSArray* subString = [array subarrayWithRange: NSMakeRange(begin, end - begin + 1)];
+//            NSLog(@"SubString:%@", subString);
             NSInteger quoteIndex = [subString indexOfObject: @","];
             NSInteger leftBracketsIndex = [subString indexOfObject: @"["];
             NSInteger leftBraceIndex = [subString indexOfObject: @"{"];
@@ -502,9 +571,11 @@
                             if (rightBracketsIndex == -1)
                                 return nil;
                             subArray = [subBracketString subarrayWithRange: NSMakeRange(0, (int) rightBracketsIndex + 1)];
+//                            NSLog(@"array Begin:%@", array[begin]);
+//                            NSLog(@"subArrayA:%@", subArray);
                             begin += ([subArray count]);
                             //看看下一位是不是逗号或者结束
-                            if ([array[begin] isEqualToString: @","] || [array[begin] isEqualToString: @"}"]) {
+                            if ([array[begin] isEqualToString: @","] || [array[begin] isEqualToString: @"}"] || ([array[begin] isEqualToString: @"]"]) ) {
                                 begin++;
                             }
                             else
@@ -520,7 +591,7 @@
                         }
                         else {
                             //获得括号前的数组
-                            NSArray* subBraceString = [array subarrayWithRange: NSMakeRange(begin, leftBraceIndex)];
+                            NSArray* subBraceString = [array subarrayWithRange: NSMakeRange(begin, end - begin + 1)];
                             rightBraceIndex = [self findRightBraceIndex: subBraceString];
                             if (rightBraceIndex == -1)
                                 return nil;
@@ -542,7 +613,9 @@
                             ((quoteIndex > rightBracketsIndex) && (quoteIndex > rightBraceIndex)) ||
                             ((quoteIndex > rightBraceIndex) && (quoteIndex < leftBracketsIndex))) {
                             //逗号不属于子数组或子字典，则照常工作
+                            
                             subArray = [array subarrayWithRange: NSMakeRange(begin, (int) quoteIndex)];
+//                            NSLog(@"SubArray0: %@", subArray);
                             begin += ((int) quoteIndex + 1);
                         }
                         else if ((leftBracketsIndex < leftBraceIndex && rightBracketsIndex > rightBraceIndex)) {
@@ -552,9 +625,10 @@
                             if (rightBracketsIndex == -1)
                                 return nil;
                             subArray = [subBracketString subarrayWithRange: NSMakeRange(0, (int) rightBracketsIndex + 1)];
+//                             NSLog(@"SubArray1: %@", subArray);
                             begin += ([subArray count]);
                             //看看下一位是不是逗号或者结束
-                            if ([array[begin] isEqualToString: @","] || [array[begin] isEqualToString: @"}"]) {
+                            if ([array[begin] isEqualToString: @","] || [array[begin] isEqualToString: @"}"] || [array[begin] isEqualToString: @"]"]) {
                                 begin++;
                             }
                             else
@@ -569,6 +643,7 @@
                             if (rightBraceIndex == -1)
                                 return nil;
                             subArray = [subBraceString subarrayWithRange: NSMakeRange(0, (int) rightBraceIndex + 1)];
+//                             NSLog(@"SubArray2: %@", subArray);
                             begin += ([subArray count]);
                             //看看下一位是不是逗号或者结束
                             if ([array[begin] isEqualToString: @","] || [array[begin] isEqualToString: @"}"] || [array[begin] isEqualToString: @"]"]) {
@@ -585,6 +660,7 @@
                                 return nil;
                             subArray = [subBracketString subarrayWithRange: NSMakeRange(0, (int) rightBracketsIndex + 1)];
                             begin += ([subArray count]);
+//                             NSLog(@"SubArray3: %@", subArray);
                             //看看下一位是不是逗号或者结束
                             if ([array[begin] isEqualToString: @","] || [array[begin] isEqualToString: @"}"]) {
                                 begin++;
@@ -600,7 +676,7 @@
                             if (rightBraceIndex == -1)
                                 return nil;
                             subArray = [subBraceString subarrayWithRange: NSMakeRange(0, (int) rightBraceIndex + 1)];
-                            
+//                             NSLog(@"SubArray4: %@", subArray);
                             begin += ([subArray count]);
                             //看看下一位是不是逗号或者结束
                             if ([array[begin] isEqualToString: @","] || [array[begin] isEqualToString: @"}"] || [array[begin] isEqualToString: @"]"]) {

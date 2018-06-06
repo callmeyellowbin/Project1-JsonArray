@@ -13,20 +13,32 @@
 #import "NSMutableArray.h"
 int main(int argc, char * argv[]) {
     @autoreleasepool {
-        char* path = "/Users/huanghongbin/Library/Mobile Documents/com~apple~TextEdit/Documents/jsonFile.txt";
         
         ParseJsonMethod *method = [[ParseJsonMethod alloc] init];
+        char* path = "/Users/huanghongbin/Library/Mobile Documents/com~apple~TextEdit/Documents/jsonFile.txt";
         //获取文本内容
-        [method initWithJsonFile: path];
+        NSString *jsonStr = [[NSString alloc] init];
+        jsonStr = [method getStringWithJsonFile: path];
+
+        id jsonResult = nil;
+        jsonResult = [ParseJsonMethod JsonObjectWithString: jsonStr];
+        if ([jsonResult isKindOfClass: [NSMutableArray class]]) {
+            NSLog(@"It's an array:\n%@", [jsonResult my_description]);
+        }
+        else if ([jsonResult isKindOfClass: [NSMutableDictionary class]]) {
+            NSLog(@"It's an dictionary:\n%@", [jsonResult my_description]);
+        }
+        else {
+            //不合法
+            NSLog(@"%@", jsonResult);
+        }
         //解析JSON数据
 //        [method parseWithJsonString];
         
         //输出获得的字典。
         //输出时中文转码错误，只能通过类别定义来返回NSString从而输出
-        if ([method parseWithJsonStringByMySelf])
-            NSLog(@"The result dictionary is %@", [[method jsonArray] my_description]);
-        else
-            NSLog(@"JSON数据不合法！");
+        
+        
         
         return UIApplicationMain(argc, argv, nil, NSStringFromClass([AppDelegate class]));
     }

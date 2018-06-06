@@ -14,13 +14,16 @@
     NSMutableArray *subResultArray;
     int braceCount, bracketCountForDictionary, bracketCountForArray;
 }
+
+- (void) setDict: (NSMutableArray* ) dict;
 @property (nonatomic, copy) NSMutableDictionary *jsonDictionary;
 @property (nonatomic, copy) NSMutableString *jsonString;
 @property (nonatomic, copy) NSMutableArray *jsonArray;
-
-- (void) initWithJsonFile: (char *) path;
+@property (nonatomic, assign) int resultType;
+- (NSString *) getStringWithJsonFile: (char *) path;
 - (void) parseWithJsonString;
-//- (void) parseWithJsonStringByMySelf;
-- (NSMutableArray *) parseWithJsonStringArray: (NSArray*) array;
+
++ (id) JsonObjectWithString: (NSString *) jsonStr;
+
 - (BOOL) parseWithJsonStringByMySelf;
 @end
