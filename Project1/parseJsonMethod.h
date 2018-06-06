@@ -17,6 +17,7 @@
 
 - (void) setDict: (NSMutableArray* ) dict;
 @property (nonatomic, copy) NSMutableDictionary *jsonDictionary;
+@property (nonatomic, copy) NSMutableDictionary *jsonDictionaryRsult;
 @property (nonatomic, copy) NSMutableString *jsonString;
 @property (nonatomic, copy) NSMutableArray *jsonArray;
 @property (nonatomic, assign) int resultType;

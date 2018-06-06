@@ -13,15 +13,18 @@
 #import "NSMutableArray.h"
 int main(int argc, char * argv[]) {
     @autoreleasepool {
-        
+        //TODO:判断key内带引号、负号，以及多余的引号等
         ParseJsonMethod *method = [[ParseJsonMethod alloc] init];
-        char* path = "/Users/huanghongbin/Library/Mobile Documents/com~apple~TextEdit/Documents/jsonFile.txt";
+        char* path = "/Users/huanghongbin/Downloads/data/error_16.txt";
         //获取文本内容
         NSString *jsonStr = [[NSString alloc] init];
         jsonStr = [method getStringWithJsonFile: path];
-
+        [method parseWithJsonString];
+        //解析JSON数据
         id jsonResult = nil;
         jsonResult = [ParseJsonMethod JsonObjectWithString: jsonStr];
+        NSLog(@"result is: %@", [method jsonDictionaryRsult]);
+        //jsonResult即为所求内容
         if ([jsonResult isKindOfClass: [NSMutableArray class]]) {
             NSLog(@"It's an array:\n%@", [jsonResult my_description]);
         }
@@ -32,14 +35,10 @@ int main(int argc, char * argv[]) {
             //不合法
             NSLog(@"%@", jsonResult);
         }
-        //解析JSON数据
-//        [method parseWithJsonString];
-        
-        //输出获得的字典。
-        //输出时中文转码错误，只能通过类别定义来返回NSString从而输出
-        
-        
-        
+        if ([[method jsonDictionaryRsult] isEqual: jsonResult])
+            NSLog(@"YES!");
+        else
+            NSLog(@"NO!");
         return UIApplicationMain(argc, argv, nil, NSStringFromClass([AppDelegate class]));
     }
 }

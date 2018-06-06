@@ -27,6 +27,7 @@
     
     //初始化
     _jsonString = [NSMutableString stringWithCapacity: 50];
+    _jsonDictionaryRsult = [NSMutableDictionary dictionaryWithCapacity: 50];
     _jsonDictionary = [NSMutableDictionary dictionaryWithCapacity: 50];
     _jsonArray = [NSMutableArray arrayWithCapacity: 50];
     _resultType = -1;
@@ -56,7 +57,7 @@
     NSData* jsonData;
     jsonData = [_jsonString dataUsingEncoding:NSUTF8StringEncoding];
     if (jsonData) {
-        _jsonDictionary = [NSJSONSerialization JSONObjectWithData:jsonData
+        _jsonDictionaryRsult = [NSJSONSerialization JSONObjectWithData:jsonData
                                                   options:NSJSONReadingMutableContainers
                                                                error: nil];
     }
@@ -348,6 +349,10 @@
         if (jsonResult == nil)
             return nil;
         [result addObject: jsonResult];
+    }
+    if ([result count] == 0) {
+        [result addObject: [NSNull null]];
+        return result;
     }
     if ([result count] > 1)
         return result;
